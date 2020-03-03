@@ -18,7 +18,7 @@ var (
 		Name: "run_queue_runs_queued",
 		Help: "The total number of runs that have been queued",
 	})
-	promNumberRunQueueWorkers = promauto.NewGauge(prometheus.GaugeOpts{
+	promNumberRunQueueWorkersStarted = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "run_queue_queue_size",
 		Help: "The size of the run queue",
 	})
@@ -129,9 +129,7 @@ func (rq *runQueue) orchestrateWorkers() {
 }
 
 func (rq *runQueue) runSingleJobSpecWorker(jobSpecID models.ID, worker *singleJobSpecWorker) {
-	defer close(worker.chDone)
-
-	promNumberRunQueueWorkers.Inc()
+	promNumberRunQueueWorkersStarted.Inc()
 
 	var (
 		startOnce       sync.Once
@@ -145,7 +143,13 @@ func (rq *runQueue) runSingleJobSpecWorker(jobSpecID models.ID, worker *singleJo
 	// it sends a "work finished" message to that loop, which may or may not cause it to
 	// spin down, depending on whether further requests are already enqueued.
 	go func() {
+		defer close(worker.chDone)
+
 		for runsRequested := range chResume {
+			// We have to wait until the worker has actually received a job before indicating
+			// to the coordinator loop that work has started.  If we do this before the worker's
+			// for loop starts, there's a race that can allow the coordinator to receive a chStop
+			// message and shut down the worker even though runs are queued.
 			startOnce.Do(func() { close(chWorkerStarted) })
 
 			for _, runID := range runsRequested {
