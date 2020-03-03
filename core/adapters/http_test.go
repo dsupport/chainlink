@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"testing"
+	"time"
 
 	"chainlink/core/adapters"
 	"chainlink/core/internal/cltest"
@@ -652,4 +653,18 @@ func TestHTTP_BuildingURL(t *testing.T) {
 			assert.Nil(t, err)
 		})
 	}
+}
+
+func Test_HTTP_ParseTimeout(t *testing.T) {
+	t.Parallel()
+
+	defaultTimeout, _ := time.ParseDuration("5s")
+	assert.Equal(t, defaultTimeout, adapters.ParseTimeout(""))
+
+	rubbish := "rubbish"
+	assert.Equal(t, defaultTimeout, adapters.ParseTimeout(rubbish))
+
+	expectedTimeout, _ := time.ParseDuration("1h")
+	hour := "1h"
+	assert.Equal(t, expectedTimeout, adapters.ParseTimeout(hour))
 }

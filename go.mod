@@ -11,6 +11,7 @@ require (
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/boj/redistore v0.0.0-20160128113310-fc113767cd6b // indirect
 	github.com/btcsuite/btcd v0.0.0-20190115013929-ed77733ec07d
+	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/cespare/cp v1.1.1 // indirect
 	github.com/codegangsta/negroni v1.0.0 // indirect
 	github.com/danielkov/gin-helmet v0.0.0-20171108135313-1387e224435e
